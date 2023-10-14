@@ -12,7 +12,7 @@ fn main() {
         Some(parser::SubCommand::Get{obj}) => {
             match obj {
                 parser::Object::Cycle{id} => {
-                    // get_cycle(&config, id);
+                    cycle::get_cycle(&config, id.expect("Id dont provided"));
                 }
                 parser::Object::Course{id, name} => {
                     // get_course(&config, id, name);
@@ -26,7 +26,14 @@ fn main() {
             //remove(&config, obj);
         }
         Some(parser::SubCommand::List{obj}) => {
-            //list(&config, obj);
+            match obj {
+                parser::CollObject::Cycles { } => {
+                    cycle::print_cycles(cycle::list_cycles(&config));
+                }
+                parser::CollObject::Courses { id } => {
+
+                }
+            }
         }
         None => {
             println!("No command given");

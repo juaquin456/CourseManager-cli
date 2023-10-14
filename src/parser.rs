@@ -1,7 +1,7 @@
-use clap::{Arg, Parser, Subcommand, ValueEnum};
+use clap::{ Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(propagate_version = true)]
+#[command()]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<SubCommand>,
@@ -27,7 +27,7 @@ pub enum SubCommand {
     },
     List{
         #[command(subcommand)]
-        obj: Object,
+        obj: CollObject,
     },
 }
 
@@ -43,5 +43,16 @@ pub enum Object {
         id: Option<u16>,
         #[arg(name = "name", short, long)]
         name: Option<String>,
+    },
+}
+
+
+#[derive(Subcommand)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CollObject {
+    Cycles {},
+    Courses {
+        #[arg(name = "id", short, long)]
+        id: Option<u16>,
     },
 }

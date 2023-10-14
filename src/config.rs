@@ -5,8 +5,9 @@ use log::{info, error};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    username: String,
-    path: PathBuf,
+    pub username: String,
+    pub path: PathBuf,
+    pub cycle_prefix: String,
 }
 
 pub fn read_config(reconfig: bool) -> Config {
@@ -26,11 +27,12 @@ pub fn read_config(reconfig: bool) -> Config {
                 println!("What is your name?");
                 std::io::stdin().read_line(&mut name).expect("Failed to read line");
                 let mut pathname = String::new();
+                let mut path_docs;
                 loop {
                     pathname.clear();
                     println!("Path to manage");
                     std::io::stdin().read_line(&mut pathname).expect("Failed to read line");
-                    let path = {
+                    path_docs = {
                         let tmp_path = pathname.trim();
                         if tmp_path == "." {
                             env::current_dir().unwrap()
@@ -38,7 +40,7 @@ pub fn read_config(reconfig: bool) -> Config {
                             PathBuf::from(tmp_path)
                         }
                     };
-                    if !path.is_dir() {
+                    if !path_docs.is_dir() {
                         error!("{} is not valid directory", path.display());
                     } else {
                         info!("valid path");
@@ -47,7 +49,8 @@ pub fn read_config(reconfig: bool) -> Config {
                 }
                 Config {
                     username: name,
-                    path,
+                    path: path_docs,
+                    cycle_prefix: String::from("Cycle"),
                 }
             }
         }
