@@ -1,0 +1,1 @@
+# CourseManage CLI
