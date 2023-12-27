@@ -1,2 +1,2 @@
-# CourseManage CLI
-A courses manager in console. 
+# Course Manager CLI
+A course manager in console. 
