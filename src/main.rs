@@ -1,3 +1,4 @@
+use std::fs;
 use clap::Parser;
 
 mod models;
@@ -16,11 +17,11 @@ fn main() {
             let input = input.trim();
 
             let path = std::path::Path::new(input);
-            if !path.exists() {
+            if !path.is_dir() & !path.is_file() {
                 println!("The path you entered does not exist");
             }
             else {
-                config = Config::new(path.to_str().unwrap());
+                config = Config::new(fs::canonicalize(path).unwrap().to_str().unwrap());
                 break;
             }
         }
