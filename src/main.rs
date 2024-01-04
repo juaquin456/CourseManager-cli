@@ -23,7 +23,7 @@ fn main() {
                     println!("Creating cycle {}-{}", cycle.age, cycle.semester);
                 },
                 parser::Entity::Course(course) => {
-                    println!("Creating course {}-{} {}", course.age, course.semester, course.name);
+                    println!("Creating course {} {}", course.cycle_id, course.name);
                 }
             }
         },
@@ -33,9 +33,29 @@ fn main() {
                     println!("Removing cycle {}-{}", cycle.age, cycle.semester);
                 },
                 parser::Entity::Course(course) => {
-                    println!("Removing course {}-{} {}", course.age, course.semester, course.name);
+                    println!("Removing course {} {}", course.cycle_id, course.name);
                 }
             }
         },
+        parser::Commands::Go {entity} => {
+            match entity {
+                parser::Entity::Cycle(cycle) => {
+                    println!("Going to cycle {}-{}", cycle.age, cycle.semester);
+                },
+                parser::Entity::Course(course) => {
+                    println!("Going to course {} {}", course.cycle_id, course.name);
+                }
+            }
+        },
+        parser::Commands::Summary {entity} => {
+            match entity {
+                parser::Entity::Cycle(cycle) => {
+                    println!("Getting summary of cycle {}-{}", cycle.age, cycle.semester);
+                },
+                parser::Entity::Course(course) => {
+                    println!("Getting summary of course {} {}", course.cycle_id, course.name);
+                }
+            }
+        }
     }
 }

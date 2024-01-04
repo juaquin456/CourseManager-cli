@@ -15,9 +15,7 @@ pub struct Cycle {
 
 #[derive(Args)]
 pub struct Course {
-    pub age: u16,
-    pub semester: u8,
-
+    pub cycle_id: u16,
     pub name: String,
 }
 
