@@ -2,9 +2,40 @@ use clap::Parser;
 
 mod models;
 mod parser;
+mod config;
+use config::Config;
 
 fn main() {
+    let config;
+    if !Config::exists() {
+        println!("Config file not found, creating one...");
+        loop {
+            let mut input = String::new();
+            println!("Enter the path to the working directory:");
+            std::io::stdin().read_line(&mut input).unwrap();
+            let input = input.trim();
+
+            let path = std::path::Path::new(input);
+            if !path.exists() {
+                println!("The path you entered does not exist");
+            }
+            else {
+                config = Config::new(path.to_str().unwrap());
+                break;
+            }
+        }
+
+
+        config.write();
+    }
+    else {
+        config = Config::read(&Config::get_path());
+        println!("{}", config.get_working_dir());
+    }
+
     let cli = parser::Cli::parse();
+
+
 
     match cli.command {
         parser::Commands::List { entity } => {
