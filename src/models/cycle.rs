@@ -25,8 +25,8 @@ impl Cycle {
         }
     }
 
-    pub fn add_course(&mut self, course: Box<Course>) {
-        self.courses.push(*course);
+    pub fn add_course(&mut self, course: Course) {
+        self.courses.push(course);
     }
 
     pub fn get_folder_name(&self) -> String {
@@ -43,5 +43,18 @@ impl Cycle {
     pub(crate) fn create_folder(&self, parent_path: &str) {
         let create_dir_result = fs::create_dir(Path::new(parent_path).join(self.get_folder_name()));
         if let Err(e) = create_dir_result { println!("Failed to create folder: {}", e) }
+    }
+
+    pub fn read_cycles_folder(path: &str) -> Vec<Cycle> {
+        let mut cycles = Vec::new();
+        let paths = fs::read_dir(path).unwrap();
+        for path in paths {
+            let path = path.unwrap().path();
+            if path.is_dir() {
+                let folder_name = path.file_name().unwrap().to_str().unwrap();
+                cycles.push(Cycle::from(folder_name));
+            }
+        }
+        cycles
     }
 }

@@ -39,7 +39,8 @@ fn main() {
         parser::Commands::List { entity } => {
             match entity {
                 parser::Entities::Cycles => {
-                    println!("Listing cycles");
+                    let cycles = models::cycle::Cycle::read_cycles_folder(config.get_working_dir());
+                    cycles.iter().for_each(|cycle| println!("{}", cycle.get_folder_name()));
                 },
                 parser::Entities::Courses => {
                     println!("Listing courses");
@@ -53,7 +54,18 @@ fn main() {
                     new_cycle.create_folder(config.get_working_dir());
                 },
                 parser::Entity::Course(course) => {
-                    println!("Creating course {} {}", course.cycle_id, course.name);
+                    let mut cycles = models::cycle::Cycle::read_cycles_folder(config.get_working_dir());
+                    let res = cycles.iter_mut().find(|cycle| cycle.get_folder_name() == course.cycle_id);
+                    match res {
+                        Some(cycle) => {
+                            let new_course = models::course::Course::new(&course.name);
+                            new_course.create_folder(&format!("{}/{}", config.get_working_dir(), cycle.get_folder_name()));
+                            cycle.add_course(new_course);
+                        },
+                        None => {
+                            println!("Cycle {} not found", course.cycle_id);
+                        }
+                    }
                 }
             }
         },
