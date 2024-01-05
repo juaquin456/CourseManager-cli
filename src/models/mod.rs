@@ -1,2 +1,2 @@
-mod course;
-mod cycle;
+pub mod course;
+pub mod cycle;

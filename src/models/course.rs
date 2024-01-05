@@ -2,7 +2,6 @@ use std::path::Path;
 
 pub struct Course {
     name: String,
-    path: Box<Path>,
 }
 
 impl From<&str> for Course {
@@ -12,25 +11,19 @@ impl From<&str> for Course {
                 .file_name()
                 .unwrap()
                 .to_str()
-                .unwrap(),
-            Box::from(Path::new(path))
+                .unwrap()
         )
     }
 }
 
 impl Course {
-    pub fn new(name: &str, path: Box<Path>) -> Course {
+    pub fn new(name: &str) -> Course {
         Course {
             name: String::from(name),
-            path,
         }
     }
 
     pub fn get_name(&self) -> &str {
         &self.name
-    }
-
-    pub fn get_path(&self) -> &Path {
-        &self.path
     }
 }

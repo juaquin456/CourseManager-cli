@@ -7,7 +7,7 @@ mod config;
 use config::Config;
 
 fn main() {
-    let config;
+    let config ;
     if !Config::exists() {
         println!("Config file not found, creating one...");
         loop {
@@ -26,16 +26,13 @@ fn main() {
             }
         }
 
-
         config.write();
     }
     else {
         config = Config::read(&Config::get_path());
-        println!("{}", config.get_working_dir());
     }
 
     let cli = parser::Cli::parse();
-
 
 
     match cli.command {
@@ -52,7 +49,8 @@ fn main() {
         parser::Commands::Create {entity} => {
             match entity {
                 parser::Entity::Cycle(cycle) => {
-                    println!("Creating cycle {}-{}", cycle.age, cycle.semester);
+                    let new_cycle = models::cycle::Cycle::new(cycle.age, cycle.semester);
+                    new_cycle.create_folder(config.get_working_dir());
                 },
                 parser::Entity::Course(course) => {
                     println!("Creating course {} {}", course.cycle_id, course.name);
