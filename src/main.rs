@@ -39,11 +39,16 @@ fn main() {
         parser::Commands::List { entity } => {
             match entity {
                 parser::Entities::Cycles => {
-                    let cycles = models::cycle::Cycle::read_cycles_folder(config.get_working_dir());
+                    let cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
                     cycles.iter().for_each(|cycle| println!("{}", cycle.get_folder_name()));
                 },
                 parser::Entities::Courses => {
-                    println!("Listing courses");
+                    let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+                    cycles.iter_mut().for_each(|cycle| {
+                        println!("{}", cycle.get_folder_name());
+                        cycle.load_courses(config.get_working_dir());
+                        cycle.get_courses().iter().for_each(|course| println!("  {}", course.get_name()));
+                    });
                 }
             }
         },
@@ -54,7 +59,7 @@ fn main() {
                     new_cycle.create_folder(config.get_working_dir());
                 },
                 parser::Entity::Course(course) => {
-                    let mut cycles = models::cycle::Cycle::read_cycles_folder(config.get_working_dir());
+                    let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
                     let res = cycles.iter_mut().find(|cycle| cycle.get_folder_name() == course.cycle_id);
                     match res {
                         Some(cycle) => {

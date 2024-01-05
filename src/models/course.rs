@@ -6,10 +6,14 @@ pub struct Course {
 
 impl Course {
     pub(crate) fn create_folder(&self, p0: &str) {
-        let create_dir_result = std::fs::create_dir(Path::new(p0).join(self.get_name()));
-        if let Err(e) = create_dir_result { println!("Failed to create folder: {}", e) }
+        let course_path = Path::new(p0).join(self.get_name());
+        let course_dir_result = std::fs::create_dir(&course_path);
+        if let Err(e) = course_dir_result { println!("Failed to create folder: {}", e) }
 
-        todo!("Create the structure of the course folder");
+        if let Err(e) = std::fs::create_dir(course_path.join("Projects")) { println!("Failed to create folder: {}", e) }
+        if let Err(e) = std::fs::create_dir(course_path.join("Notes")) { println!("Failed to create folder: {}", e) }
+        if let Err(e) = std::fs::create_dir(course_path.join("Labs")) { println!("Failed to create folder: {}", e) }
+        if let Err(e) = std::fs::create_dir(course_path.join("References")) { println!("Failed to create folder: {}", e) }
     }
 }
 

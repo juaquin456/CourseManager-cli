@@ -32,6 +32,9 @@ impl Cycle {
     pub fn get_folder_name(&self) -> String {
         format!("{}-{}", self.age, self.semester)
     }
+    pub fn get_courses(&self) -> &Vec<Course> {
+        &self.courses
+    }
 
     pub fn get_ids(folder_name: &str) -> (u16, u8) {
         let ids: Vec<&str> = folder_name.split('-').collect();
@@ -45,7 +48,7 @@ impl Cycle {
         if let Err(e) = create_dir_result { println!("Failed to create folder: {}", e) }
     }
 
-    pub fn read_cycles_folder(path: &str) -> Vec<Cycle> {
+    pub fn load_cycles(path: &str) -> Vec<Cycle> {
         let mut cycles = Vec::new();
         let paths = fs::read_dir(path).unwrap();
         for path in paths {
@@ -56,5 +59,16 @@ impl Cycle {
             }
         }
         cycles
+    }
+
+    pub(crate) fn load_courses(&mut self, path: &str) {
+        let courses_paths = fs::read_dir(Path::new(path).join(self.get_folder_name())).unwrap();
+        for course_path in courses_paths {
+            let course_path = course_path.unwrap().path();
+            if course_path.is_dir() {
+                let course = Course::from(course_path.to_str().unwrap());
+                self.add_course(course);
+            }
+        }
     }
 }
