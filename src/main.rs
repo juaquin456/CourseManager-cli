@@ -77,10 +77,39 @@ fn main() {
         parser::Commands::Remove {entity} => {
             match entity {
                 parser::Entity::Cycle(cycle) => {
-                    println!("Removing cycle {}-{}", cycle.age, cycle.semester);
+                    let cycle_to_remove = models::cycle::Cycle::new(cycle.age, cycle.semester);
+                    let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+                    let res = cycles.iter_mut().find(|c| c.get_folder_name() == cycle_to_remove.get_folder_name());
+                    match res {
+                        Some(cycle) => {
+                            fs::remove_dir_all(format!("{}/{}", config.get_working_dir(), cycle.get_folder_name())).unwrap();
+                        },
+                        None => {
+                            println!("Cycle {} not found", cycle_to_remove.get_folder_name());
+                        }
+                    }
                 },
                 parser::Entity::Course(course) => {
-                    println!("Removing course {} {}", course.cycle_id, course.name);
+                    let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+                    let res = cycles.iter_mut().find(|cycle| cycle.get_folder_name() == course.cycle_id);
+                    match res {
+                        Some(cycle) => {
+                            cycle.load_courses(config.get_working_dir());
+                            let course_to_remove = models::course::Course::new(&course.name);
+                            let res = cycle.get_courses().iter().find(|c| c.get_name() == course_to_remove.get_name());
+                            match res {
+                                Some(course) => {
+                                    fs::remove_dir_all(format!("{}/{}/{}", config.get_working_dir(), cycle.get_folder_name(), course.get_name())).unwrap();
+                                },
+                                None => {
+                                    println!("Course {} not found", course_to_remove.get_name());
+                                }
+                            }
+                        },
+                        None => {
+                            println!("Cycle {} not found", course.cycle_id);
+                        }
+                    }
                 }
             }
         },
