@@ -1,4 +1,5 @@
 use std::fs;
+use std::process::Command;
 use clap::Parser;
 
 mod models;
@@ -116,10 +117,55 @@ fn main() {
         parser::Commands::Go {entity} => {
             match entity {
                 parser::Entity::Cycle(cycle) => {
-                    println!("Going to cycle {}-{}", cycle.age, cycle.semester);
+                    let cycle_target = models::cycle::Cycle::new(cycle.age, cycle.semester);
+                    let cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+                    let res = cycles.iter().find(|c| c.get_folder_name() == cycle_target.get_folder_name());
+                    match res {
+                        Some(cycle) => {
+                            if cfg!(target_os = "linux") {
+                                Command::new("gnome-terminal")
+                                    .arg("--working-directory")
+                                    .arg(format!("{}/{}", config.get_working_dir(), cycle.get_folder_name()))
+                                    .output()
+                                    .expect("failed to execute process")
+                            } else {
+                                panic!("Unsupported OS")
+                            };
+                        },
+                        None => {
+                            println!("Cycle {} not found", cycle_target.get_folder_name());
+                        }
+                    }
                 },
                 parser::Entity::Course(course) => {
-                    println!("Going to course {} {}", course.cycle_id, course.name);
+                    let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+                    let res = cycles.iter_mut().find(|cycle| cycle.get_folder_name() == course.cycle_id);
+                    match res {
+                        Some(cycle) => {
+                            cycle.load_courses(config.get_working_dir());
+                            let course_target = models::course::Course::new(&course.name);
+                            let res = cycle.get_courses().iter().find(|c| c.get_name() == course_target.get_name());
+                            match res {
+                                Some(course) => {
+                                    if cfg!(target_os = "linux") {
+                                        Command::new("gnome-terminal")
+                                            .arg("--working-directory")
+                                            .arg(format!("{}/{}/{}", config.get_working_dir(), cycle.get_folder_name(), course.get_name()))
+                                            .output()
+                                            .expect("failed to execute process")
+                                    } else {
+                                        panic!("Unsupported OS")
+                                    };
+                                },
+                                None => {
+                                    println!("Course {} not found", course_target.get_name());
+                                }
+                            }
+                        },
+                        None => {
+                            println!("Cycle {} not found", course.cycle_id);
+                        }
+                    }
                 }
             }
         },
