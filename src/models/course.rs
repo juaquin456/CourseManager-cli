@@ -39,4 +39,9 @@ impl Course {
     pub fn get_name(&self) -> &str {
         &self.name
     }
+
+    pub fn remove_folder(&self, p0: &str) {
+        let course_dir_result = std::fs::remove_dir_all(Path::new(p0).join(self.get_name()));
+        if let Err(e) = course_dir_result { println!("Failed to remove folder: {}", e) }
+    }
 }

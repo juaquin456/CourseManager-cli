@@ -83,7 +83,7 @@ fn main() {
                     let res = cycles.iter_mut().find(|c| c.get_folder_name() == cycle_to_remove.get_folder_name());
                     match res {
                         Some(cycle) => {
-                            fs::remove_dir_all(format!("{}/{}", config.get_working_dir(), cycle.get_folder_name())).unwrap();
+                            cycle.remove_folder(config.get_working_dir());
                         },
                         None => {
                             println!("Cycle {} not found", cycle_to_remove.get_folder_name());
@@ -100,7 +100,7 @@ fn main() {
                             let res = cycle.get_courses().iter().find(|c| c.get_name() == course_to_remove.get_name());
                             match res {
                                 Some(course) => {
-                                    fs::remove_dir_all(format!("{}/{}/{}", config.get_working_dir(), cycle.get_folder_name(), course.get_name())).unwrap();
+                                    course.remove_folder(&format!("{}/{}/", config.get_working_dir(), cycle.get_folder_name()));
                                 },
                                 None => {
                                     println!("Course {} not found", course_to_remove.get_name());

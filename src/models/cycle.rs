@@ -71,4 +71,9 @@ impl Cycle {
             }
         }
     }
+
+    pub fn remove_folder(&self, parent_path: &str) {
+        let remove_dir_result = fs::remove_dir_all(Path::new(parent_path).join(self.get_folder_name()));
+        if let Err(e) = remove_dir_result { println!("Failed to remove folder: {}", e) }
+    }
 }
