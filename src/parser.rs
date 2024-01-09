@@ -19,6 +19,13 @@ pub struct Course {
     pub name: String,
 }
 
+#[derive(Args)]
+pub struct Project {
+    pub cycle_id: String,
+    pub course_id: String,
+    pub name: String,
+}
+
 #[derive(Subcommand)]
 pub enum Commands {
     Create {
