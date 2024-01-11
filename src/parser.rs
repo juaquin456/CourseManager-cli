@@ -34,11 +34,11 @@ pub enum Commands {
     },
     Remove {
         #[command(subcommand)]
-        entity: Entity
+        entity: Entity,
     },
     List {
         #[arg(value_enum)]
-        entity: Entities
+        entity: Entities,
     },
     Go {
         #[command(subcommand)]

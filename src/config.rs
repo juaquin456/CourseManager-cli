@@ -1,9 +1,9 @@
+use homedir::get_my_home;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
-use serde::{Deserialize, Serialize};
-use homedir::{get_my_home};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
@@ -39,7 +39,8 @@ impl Config {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
 
         let mut file = File::create(path).unwrap();
-        file.write_all(toml::to_string(&self).unwrap().as_ref()).unwrap();
+        file.write_all(toml::to_string(&self).unwrap().as_ref())
+            .unwrap();
     }
 
     pub fn read(config_path: &str) -> Self {

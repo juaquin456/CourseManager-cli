@@ -1,13 +1,12 @@
+use super::course::Course;
 use std::fs;
 use std::path::Path;
-use super::course::Course;
 
 pub struct Cycle {
     age: u16,
     semester: u8,
     courses: Vec<Course>,
 }
-
 
 impl From<&str> for Cycle {
     fn from(folder_name: &str) -> Cycle {
@@ -45,7 +44,9 @@ impl Cycle {
 
     pub(crate) fn create_folder(&self, parent_path: &str) {
         let create_dir_result = fs::create_dir(Path::new(parent_path).join(self.get_folder_name()));
-        if let Err(e) = create_dir_result { println!("Failed to create folder: {}", e) }
+        if let Err(e) = create_dir_result {
+            println!("Failed to create folder: {}", e)
+        }
     }
 
     pub fn load_cycles(path: &str) -> Vec<Cycle> {
@@ -73,7 +74,10 @@ impl Cycle {
     }
 
     pub fn remove_folder(&self, parent_path: &str) {
-        let remove_dir_result = fs::remove_dir_all(Path::new(parent_path).join(self.get_folder_name()));
-        if let Err(e) = remove_dir_result { println!("Failed to remove folder: {}", e) }
+        let remove_dir_result =
+            fs::remove_dir_all(Path::new(parent_path).join(self.get_folder_name()));
+        if let Err(e) = remove_dir_result {
+            println!("Failed to remove folder: {}", e)
+        }
     }
 }
