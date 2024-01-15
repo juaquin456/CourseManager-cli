@@ -1,11 +1,14 @@
-use clap::Parser;
 use std::fs;
-use std::process::Command;
+
+use clap::Parser;
+
+use config::Config;
+use crate::utils::open_terminal;
 
 mod config;
 mod models;
 mod parser;
-use config::Config;
+mod utils;
 
 fn main() {
     let config;
@@ -27,9 +30,7 @@ fn main() {
         }
 
         config.write();
-    } else {
-        config = Config::read(&Config::get_path());
-    }
+    } else { config = Config::read(&Config::get_path()); }
 
     let cli = parser::Cli::parse();
 
@@ -60,145 +61,111 @@ fn main() {
             }
             parser::Entity::Course(course) => {
                 let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
-                let res = cycles
+                let cycle = cycles
                     .iter_mut()
-                    .find(|cycle| cycle.get_folder_name() == course.cycle_id);
-                match res {
-                    Some(cycle) => {
-                        let new_course = models::course::Course::new(&course.name);
-                        new_course.create_folder(&format!(
-                            "{}/{}",
-                            config.get_working_dir(),
-                            cycle.get_folder_name()
-                        ));
-                        cycle.add_course(new_course);
-                    }
-                    None => {
-                        println!("Cycle {} not found", course.cycle_id);
-                    }
-                }
+                    .find(|cycle| cycle.get_folder_name() == course.cycle_id)
+                    .expect("Cycle not found");
+
+                let new_course = models::course::Course::new(&course.name);
+                new_course.create_folder(&format!(
+                    "{}/{}",
+                    config.get_working_dir(),
+                    cycle.get_folder_name()
+                ));
+                cycle.add_course(new_course);
             }
         },
         parser::Commands::Remove { entity } => match entity {
             parser::Entity::Cycle(cycle) => {
                 let cycle_to_remove = models::cycle::Cycle::new(cycle.age, cycle.semester);
                 let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
-                let res = cycles
-                    .iter_mut()
-                    .find(|c| c.get_folder_name() == cycle_to_remove.get_folder_name());
-                match res {
-                    Some(cycle) => {
-                        cycle.remove_folder(config.get_working_dir());
-                    }
-                    None => {
-                        println!("Cycle {} not found", cycle_to_remove.get_folder_name());
-                    }
-                }
+                cycles.iter_mut()
+                    .find(|c| c.get_folder_name() == cycle_to_remove.get_folder_name())
+                    .expect("Cycle not found")
+                    .remove_folder(config.get_working_dir());
+
             }
             parser::Entity::Course(course) => {
                 let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
-                let res = cycles
+                let cycle = cycles
                     .iter_mut()
-                    .find(|cycle| cycle.get_folder_name() == course.cycle_id);
-                match res {
-                    Some(cycle) => {
-                        cycle.load_courses(config.get_working_dir());
-                        let course_to_remove = models::course::Course::new(&course.name);
-                        let res = cycle
-                            .get_courses()
-                            .iter()
-                            .find(|c| c.get_name() == course_to_remove.get_name());
-                        match res {
-                            Some(course) => {
-                                course.remove_folder(&format!(
-                                    "{}/{}/",
-                                    config.get_working_dir(),
-                                    cycle.get_folder_name()
-                                ));
-                            }
-                            None => {
-                                println!("Course {} not found", course_to_remove.get_name());
-                            }
-                        }
-                    }
-                    None => {
-                        println!("Cycle {} not found", course.cycle_id);
-                    }
-                }
+                    .find(|cycle| cycle.get_folder_name() == course.cycle_id).expect("Cycle not found");
+
+                cycle.load_courses(config.get_working_dir());
+                let course_to_remove = models::course::Course::new(&course.name);
+                let course = cycle
+                    .get_courses()
+                    .iter()
+                    .find(|c| c.get_name() == course_to_remove.get_name())
+                    .expect("Course not found");
+
+                course.remove_folder(&format!(
+                    "{}/{}/",
+                    config.get_working_dir(),
+                    cycle.get_folder_name()
+                ));
             }
         },
         parser::Commands::Go { entity } => match entity {
             parser::Entity::Cycle(cycle) => {
                 let cycle_target = models::cycle::Cycle::new(cycle.age, cycle.semester);
                 let cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
-                let res = cycles
+                let cycle = cycles
                     .iter()
-                    .find(|c| c.get_folder_name() == cycle_target.get_folder_name());
-                match res {
-                    Some(cycle) => {
-                        if cfg!(target_os = "linux") {
-                            Command::new("gnome-terminal")
-                                .arg("--working-directory")
-                                .arg(format!(
-                                    "{}/{}",
-                                    config.get_working_dir(),
-                                    cycle.get_folder_name()
-                                ))
-                                .output()
-                                .expect("failed to execute process")
-                        } else {
-                            panic!("Unsupported OS")
-                        };
-                    }
-                    None => {
-                        println!("Cycle {} not found", cycle_target.get_folder_name());
+                    .find(|c| c.get_folder_name() == cycle_target.get_folder_name())
+                    .expect("Cycle not found");
+
+                match open_terminal(&format!(
+                    "{}/{}",
+                    config.get_working_dir(),
+                    cycle.get_folder_name()
+                )) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        println!("Failed to open terminal: {}", e);
                     }
                 }
             }
             parser::Entity::Course(course) => {
                 let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
-                let res = cycles
+                let cycle = cycles
                     .iter_mut()
-                    .find(|cycle| cycle.get_folder_name() == course.cycle_id);
-                match res {
-                    Some(cycle) => {
-                        cycle.load_courses(config.get_working_dir());
-                        let course_target = models::course::Course::new(&course.name);
-                        let res = cycle
-                            .get_courses()
-                            .iter()
-                            .find(|c| c.get_name() == course_target.get_name());
-                        match res {
-                            Some(course) => {
-                                if cfg!(target_os = "linux") {
-                                    Command::new("gnome-terminal")
-                                        .arg("--working-directory")
-                                        .arg(format!(
-                                            "{}/{}/{}",
-                                            config.get_working_dir(),
-                                            cycle.get_folder_name(),
-                                            course.get_name()
-                                        ))
-                                        .output()
-                                        .expect("failed to execute process")
-                                } else {
-                                    panic!("Unsupported OS")
-                                };
-                            }
-                            None => {
-                                println!("Course {} not found", course_target.get_name());
-                            }
-                        }
-                    }
-                    None => {
-                        println!("Cycle {} not found", course.cycle_id);
+                    .find(|cycle| cycle.get_folder_name() == course.cycle_id).expect("Cycle not found");
+
+                cycle.load_courses(config.get_working_dir());
+                let course_target = models::course::Course::new(&course.name);
+                let course = cycle
+                    .get_courses()
+                    .iter()
+                    .find(|c| c.get_name() == course_target.get_name()).expect("Course not found");
+
+                match open_terminal(&format!(
+                    "{}/{}/{}",
+                    config.get_working_dir(),
+                    cycle.get_folder_name(),
+                    course.get_name()
+                )) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        println!("Failed to open terminal: {}", e);
                     }
                 }
             }
         },
         parser::Commands::Summary { entity } => match entity {
             parser::Entity::Cycle(cycle) => {
-                println!("Getting summary of cycle {}-{}", cycle.age, cycle.semester);
+                let cycle_target = models::cycle::Cycle::new(cycle.age, cycle.semester);
+                let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+                let cycle = cycles
+                    .iter_mut()
+                    .find(|c| c.get_folder_name() == cycle_target.get_folder_name())
+                    .expect("Cycle not found");
+
+                cycle.load_courses(config.get_working_dir());
+                println!("Summary of cycle {}:", cycle.get_folder_name());
+                cycle.get_courses().iter().for_each(|course| {
+                    println!("  {}", course.get_name());
+                });
             }
             parser::Entity::Course(course) => {
                 println!(
