@@ -10,6 +10,11 @@ pub struct Course {
 }
 
 impl Course {
+    /// Creates a folder for the course. This includes subfolders for projects, labs, notes and references
+    ///
+    /// # Arguments
+    ///
+    /// * `p0` - The path to the cycle folder
     pub(crate) fn create_folder(&self, p0: &str) {
         let course_path = Path::new(p0).join(self.get_name());
         let course_dir_result = std::fs::create_dir(&course_path);
@@ -53,6 +58,11 @@ impl Course {
         &self.name
     }
 
+    /// Removes the course folder
+    ///
+    /// # Arguments
+    ///
+    /// * `p0` - The path to the cycle folder
     pub fn remove_folder(&self, p0: &str) {
         let course_dir_result = std::fs::remove_dir_all(Path::new(p0).join(self.get_name()));
         if let Err(e) = course_dir_result {
@@ -73,6 +83,11 @@ impl Course {
         &self.references
     }
 
+    /// Loads the resources of the course. This includes projects, labs, notes and references
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - The path to the course folder
     pub(crate) fn load_resources(&mut self, path: &str) {
         let paths = std::fs::read_dir(path).expect("Failed to read directory");
         paths.for_each(|path| {

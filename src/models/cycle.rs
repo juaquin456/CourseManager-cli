@@ -39,6 +39,11 @@ impl Cycle {
         &mut self.courses
     }
 
+    /// Returns a tuple containing the age and the semester of the cycle
+    ///
+    /// # Arguments
+    ///
+    /// * `folder_name` - The name of the folder containing the cycle
     pub fn get_ids(folder_name: &str) -> (u16, u8) {
         let ids: Vec<&str> = folder_name.split('-').collect();
         let age = ids[0].parse::<u16>().unwrap();
@@ -46,6 +51,12 @@ impl Cycle {
         (age, semester)
     }
 
+    /// Creates a folder for the cycle. The folder name is the concatenation of the age and the semester of the cycle.
+    /// Check the `get_folder_name` method for more details.
+    ///
+    /// # Arguments
+    ///
+    /// * `parent_path` - The path of the parent folder
     pub(crate) fn create_folder(&self, parent_path: &str) {
         let create_dir_result = fs::create_dir(Path::new(parent_path).join(self.get_folder_name()));
         if let Err(e) = create_dir_result {
@@ -53,6 +64,15 @@ impl Cycle {
         }
     }
 
+    /// Loads all the cycles from the folder path given
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - The path of the folder containing the cycles
+    ///
+    /// # Returns
+    ///
+    /// A vector containing all the cycles
     pub fn load_cycles(path: &str) -> Vec<Cycle> {
         let mut cycles = Vec::new();
         let paths = fs::read_dir(path).unwrap();
@@ -66,6 +86,12 @@ impl Cycle {
         cycles
     }
 
+
+    /// Loads all the courses from the folder path given
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - The path of the folder containing the courses
     pub(crate) fn load_courses(&mut self, path: &str) {
         let courses_paths = fs::read_dir(Path::new(path).join(self.get_folder_name())).unwrap();
         for course_path in courses_paths {
@@ -77,6 +103,11 @@ impl Cycle {
         }
     }
 
+    /// Removes the folder of the cycle
+    ///
+    /// # Arguments
+    ///
+    /// * `parent_path` - The path of the parent folder
     pub fn remove_folder(&self, parent_path: &str) {
         let remove_dir_result =
             fs::remove_dir_all(Path::new(parent_path).join(self.get_folder_name()));
