@@ -1,5 +1,6 @@
 use super::course::Course;
 use std::fs;
+use std::num::ParseIntError;
 use std::path::Path;
 
 pub struct Cycle {
@@ -9,8 +10,8 @@ pub struct Cycle {
 }
 
 impl From<&str> for Cycle {
-    fn from(folder_name: &str) -> Cycle {
-        let (age, semester) = Cycle::get_ids(folder_name);
+    fn from(folder_name: &str) -> Self {
+        let (age, semester) = Cycle::get_ids(folder_name).unwrap();
         Cycle::new(age, semester)
     }
 }
@@ -44,11 +45,11 @@ impl Cycle {
     /// # Arguments
     ///
     /// * `folder_name` - The name of the folder containing the cycle
-    pub fn get_ids(folder_name: &str) -> (u16, u8) {
+    pub fn get_ids(folder_name: &str) -> Result<(u16, u8), ParseIntError> {
         let ids: Vec<&str> = folder_name.split('-').collect();
-        let age = ids[0].parse::<u16>().unwrap();
-        let semester = ids[1].parse::<u8>().unwrap();
-        (age, semester)
+        let age = ids[0].parse::<u16>()?;
+        let semester = ids[1].parse::<u8>()?;
+        Ok((age, semester))
     }
 
     /// Creates a folder for the cycle. The folder name is the concatenation of the age and the semester of the cycle.
@@ -80,6 +81,10 @@ impl Cycle {
             let path = path.unwrap().path();
             if path.is_dir() {
                 let folder_name = path.file_name().unwrap().to_str().unwrap();
+                match Cycle::get_ids(folder_name) {
+                    Ok(_) => (),
+                    Err(_) => continue,
+                }
                 cycles.push(Cycle::from(folder_name));
             }
         }
@@ -114,5 +119,61 @@ impl Cycle {
         if let Err(e) = remove_dir_result {
             println!("Failed to remove folder: {}", e)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_cycle() {
+        let cycle = Cycle::new(1, 2);
+        assert_eq!(cycle.age, 1);
+        assert_eq!(cycle.semester, 2);
+    }
+
+    #[test]
+    fn test_get_folder_name() {
+        let cycle = Cycle::new(1, 2);
+        assert_eq!(cycle.get_folder_name(), "1-2");
+    }
+
+    #[test]
+    fn test_get_ids() {
+        let (age, semester) = Cycle::get_ids("1-2").unwrap();
+        assert_eq!(age, 1);
+        assert_eq!(semester, 2);
+    }
+
+    #[test]
+    fn test_create_folder() {
+        let cycle = Cycle::new(1, 2);
+        cycle.create_folder("/tmp");
+        assert!(Path::new("/tmp/1-2").exists());
+        fs::remove_dir_all("/tmp/1-2").unwrap();
+    }
+
+    #[test]
+    fn test_load_cycles() {
+        fs::create_dir_all("/tmp/t1").unwrap();
+
+        let cycle = Cycle::new(1, 3);
+        cycle.create_folder("/tmp/t1");
+        let cycles = Cycle::load_cycles("/tmp/t1");
+
+        assert!(Path::new("/tmp/t1/1-3").exists());
+        assert_eq!(cycles.len(), 1);
+        assert_eq!(cycles[0].age, 1);
+        assert_eq!(cycles[0].semester, 3);
+
+        fs::remove_dir_all("/tmp/t1/1-3").unwrap();
+    }
+
+    #[test]
+    fn test_remove_folder() {
+        let cycle = Cycle::new(1, 2);
+        cycle.create_folder("/tmp");
+        cycle.remove_folder("/tmp");
+        assert!(!Path::new("/tmp/1-2").exists());
     }
 }
