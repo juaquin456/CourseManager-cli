@@ -35,6 +35,10 @@ impl Cycle {
         &self.courses
     }
 
+    pub fn get_courses_mut(&mut self) -> &mut Vec<Course> {
+        &mut self.courses
+    }
+
     pub fn get_ids(folder_name: &str) -> (u16, u8) {
         let ids: Vec<&str> = folder_name.split('-').collect();
         let age = ids[0].parse::<u16>().unwrap();

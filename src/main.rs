@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, panic};
 
 use clap::Parser;
 
@@ -11,6 +11,20 @@ mod parser;
 mod utils;
 
 fn main() {
+    if cfg!(not(debug_assertions)) {
+        panic::set_hook(Box::new(|info| {
+            let message = match info.payload().downcast_ref::<&str>() {
+                Some(s) => *s,
+                None => match info.payload().downcast_ref::<String>() {
+                    Some(s) => &s[..],
+                    None => "No message"
+                },
+            };
+
+            eprintln!("{}", message);
+        }));
+    }
+
     let config;
     if !Config::exists() {
         println!("Config file not found, creating one...");
@@ -22,7 +36,7 @@ fn main() {
 
             let path = std::path::Path::new(input);
             if !path.is_dir() & !path.is_file() {
-                println!("The path you entered does not exist");
+                eprintln!("The path you entered does not exist");
             } else {
                 config = Config::new(fs::canonicalize(path).unwrap().to_str().unwrap());
                 break;
@@ -168,10 +182,32 @@ fn main() {
                 });
             }
             parser::Entity::Course(course) => {
-                println!(
-                    "Getting summary of course {} {}",
-                    course.cycle_id, course.name
-                );
+                let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+                let cycle = cycles
+                    .iter_mut()
+                    .find(|cycle| cycle.get_folder_name() == course.cycle_id).expect("Cycle not found");
+
+                cycle.load_courses(config.get_working_dir());
+                let course_target = models::course::Course::new(&course.name);
+                let course_folder_name = cycle.get_folder_name();
+
+                let course = cycle
+                    .get_courses_mut()
+                    .iter_mut()
+                    .find(|c| c.get_name() == course_target.get_name()).expect("Course not found");
+
+                course.load_resources(&format!(
+                    "{}/{}/{}",
+                    config.get_working_dir(),
+                    course_folder_name,
+                    course.get_name()
+                ));
+
+                println!("Summary of course {}:", course.get_name());
+                println!("\tProjects\n\t\t{:?}", course.get_projects());
+                println!("\tNotes\n\t\t{:?}", course.get_notes());
+                println!("\tLabs\n\t\t{:?}", course.get_labs());
+                println!("\tReferences\n\t\t{:?}", course.get_references());
             }
         },
     }
