@@ -120,6 +120,13 @@ impl Cycle {
             println!("Failed to remove folder: {}", e)
         }
     }
+
+    pub(crate) fn print_summary(&self) {
+        println!("Summary of cycle {}:", self.get_folder_name());
+        self.get_courses().iter().for_each(|course| {
+            println!("  {}", course.get_name());
+        });
+    }
 }
 
 #[cfg(test)]

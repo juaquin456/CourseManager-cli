@@ -176,10 +176,7 @@ fn main() {
                     .expect("Cycle not found");
 
                 cycle.load_courses(config.get_working_dir());
-                println!("Summary of cycle {}:", cycle.get_folder_name());
-                cycle.get_courses().iter().for_each(|course| {
-                    println!("  {}", course.get_name());
-                });
+                cycle.print_summary();
             }
             parser::Entity::Course(course) => {
                 let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
@@ -203,11 +200,7 @@ fn main() {
                     course.get_name()
                 ));
 
-                println!("Summary of course {}:", course.get_name());
-                println!("\tProjects\n\t\t{:?}", course.get_projects());
-                println!("\tNotes\n\t\t{:?}", course.get_notes());
-                println!("\tLabs\n\t\t{:?}", course.get_labs());
-                println!("\tReferences\n\t\t{:?}", course.get_references());
+                course.print_summary();
             }
         },
     }

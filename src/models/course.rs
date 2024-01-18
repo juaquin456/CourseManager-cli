@@ -35,6 +35,7 @@ impl Course {
             println!("Failed to create folder: {}", e)
         }
     }
+
 }
 
 impl From<&str> for Course {
@@ -148,5 +149,13 @@ impl Course {
             }
 
         });
+    }
+
+    pub(crate) fn print_summary(&self) {
+        println!("Summary of course {}:", self.get_name());
+        println!("\tProjects\n\t\t{:?}", self.get_projects());
+        println!("\tNotes\n\t\t{:?}", self.get_notes());
+        println!("\tLabs\n\t\t{:?}", self.get_labs());
+        println!("\tReferences\n\t\t{:?}", self.get_references());
     }
 }
