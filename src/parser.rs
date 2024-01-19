@@ -17,17 +17,9 @@ pub struct Cycle {
 pub struct Course {
     pub cycle_id: String,
     pub name: String,
-}
 
-
-
-#[derive(Args)]
-pub struct Project {
-    #[arg(required = false)]
-    pub cycle_id: String,
-    #[arg(required = false)]
-    pub course_id: String,
-    pub name: String,
+    #[arg(short, long)]
+    pub resource: Option<CourseResources>,
 }
 
 #[derive(Subcommand)]
@@ -44,10 +36,12 @@ pub enum Commands {
         #[arg(value_enum)]
         entity: Entities,
     },
+    #[command(about = "Open the resource folder in a new terminal window")]
     Go {
         #[command(subcommand)]
         entity: Entity,
     },
+    #[command(about = "Print a summary of the specified resource")]
     Summary {
         #[command(subcommand)]
         entity: Entity,
@@ -58,6 +52,14 @@ pub enum Commands {
 pub enum Entities {
     Cycles,
     Courses,
+}
+
+#[derive(ValueEnum, Copy, Clone, Debug)]
+pub enum CourseResources {
+    Projects,
+    Labs,
+    References,
+    Notes,
 }
 
 #[derive(Subcommand)]
@@ -83,6 +85,7 @@ mod tests {
             Self {
                 cycle_id: p0[1].to_string(),
                 name: p0[2].to_string(),
+                resource: None,
             }
         }
     }

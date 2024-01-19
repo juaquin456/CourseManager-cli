@@ -135,17 +135,32 @@ fn main() {
 
                 cycle.load_courses(config.get_working_dir());
                 let course_target = models::course::Course::new(&course.name);
-                let course = cycle
+
+                let course_t = cycle
                     .get_courses()
                     .iter()
                     .find(|c| c.get_name() == course_target.get_name()).expect("Course not found");
 
-                match open_terminal(&format!(
-                    "{}/{}/{}",
-                    config.get_working_dir(),
-                    cycle.get_folder_name(),
-                    course.get_name()
-                )) {
+                let path = {
+                    if let Some(t) = course.resource {
+                        format!(
+                            "{}/{}/{}/{:?}",
+                            config.get_working_dir(),
+                            cycle.get_folder_name(),
+                            course_t.get_name(),
+                            t
+                        )
+                    } else {
+                        format!(
+                            "{}/{}/{}",
+                            config.get_working_dir(),
+                            cycle.get_folder_name(),
+                            course_t.get_name()
+                        )
+                    }
+                };
+
+                match open_terminal(&path) {
                     Ok(_) => {}
                     Err(e) => {
                         println!("Failed to open terminal: {}", e);
