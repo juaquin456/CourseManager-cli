@@ -23,7 +23,9 @@ pub struct Course {
 
 #[derive(Args)]
 pub struct Project {
+    #[arg(required = false)]
     pub cycle_id: String,
+    #[arg(required = false)]
     pub course_id: String,
     pub name: String,
 }

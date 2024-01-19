@@ -12,6 +12,28 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn init() -> Config {
+        let config;
+        println!("Creating config file...");
+        loop {
+            let mut input = String::new();
+            println!("Enter the path to the working directory:");
+            std::io::stdin().read_line(&mut input).unwrap();
+            let input = input.trim();
+
+            let path = Path::new(input);
+            if !path.is_dir() & !path.is_file() {
+                eprintln!("The path you entered does not exist");
+            } else {
+                config = Config::new(fs::canonicalize(path).unwrap().to_str().unwrap());
+                break;
+            }
+        }
+
+        config.write();
+        config
+    }
+
     pub fn new(working_dir: &str) -> Config {
         let path = Config::get_path();
         Config {

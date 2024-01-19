@@ -1,4 +1,4 @@
-use std::{fs, panic};
+use std::panic;
 
 use clap::Parser;
 
@@ -25,26 +25,13 @@ fn main() {
         }));
     }
 
-    let config;
-    if !Config::exists() {
-        println!("Config file not found, creating one...");
-        loop {
-            let mut input = String::new();
-            println!("Enter the path to the working directory:");
-            std::io::stdin().read_line(&mut input).unwrap();
-            let input = input.trim();
-
-            let path = std::path::Path::new(input);
-            if !path.is_dir() & !path.is_file() {
-                eprintln!("The path you entered does not exist");
-            } else {
-                config = Config::new(fs::canonicalize(path).unwrap().to_str().unwrap());
-                break;
-            }
+    let config = {
+        if Config::exists() {
+            Config::read(&Config::get_path())
+        } else {
+            Config::init()
         }
-
-        config.write();
-    } else { config = Config::read(&Config::get_path()); }
+    };
 
     let cli = parser::Cli::parse();
 
