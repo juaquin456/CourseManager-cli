@@ -1,8 +1,9 @@
 [package]
 name = "course_manager"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
-description = "A course manager CLI written in Rust"
+description = "A CLI application to manage course folders"
+repository = "https://github.com/juaquin456/CourseManager-cli.git"
 license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
