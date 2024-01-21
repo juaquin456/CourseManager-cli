@@ -1,4 +1,5 @@
 use std::path::Path;
+use chrono::{DateTime, Utc};
 use super::resource;
 
 pub struct Course {
@@ -10,7 +11,7 @@ pub struct Course {
 }
 
 impl Course {
-    /// Creates a folder for the course. This includes subfolders for projects, labs, notes and references
+    /// Creates a folder for the course. This includes sub folders for projects, labs, notes and references
     ///
     /// # Arguments
     ///
@@ -149,6 +150,19 @@ impl Course {
             }
 
         });
+    }
+
+    pub fn print(&self, parent_path: &str) {
+        let cycle_path = Path::new(parent_path);
+
+        let cycle_id = cycle_path.file_name().unwrap().to_str().unwrap();
+        let metadata = std::fs::metadata(cycle_path.join(self.get_name())).unwrap();
+        let created_at: DateTime<Utc> = DateTime::from(metadata.created().unwrap());
+        println!("{:10} {} {:<12}",
+                 self.get_name(),
+                 cycle_id,
+                 created_at.format("%d/%m/%Y")
+        );
     }
 
     pub(crate) fn print_summary(&self) {

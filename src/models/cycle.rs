@@ -2,6 +2,7 @@ use super::course::Course;
 use std::fs;
 use std::num::ParseIntError;
 use std::path::Path;
+use chrono::{DateTime, Utc};
 
 pub struct Cycle {
     age: u16,
@@ -50,6 +51,10 @@ impl Cycle {
         let age = ids[0].parse::<u16>()?;
         let semester = ids[1].parse::<u8>()?;
         Ok((age, semester))
+    }
+
+    pub fn get_path(&self, parent_path: &str) -> String {
+        Path::new(parent_path).join(self.get_folder_name()).to_str().unwrap().to_string()
     }
 
     /// Creates a folder for the cycle. The folder name is the concatenation of the age and the semester of the cycle.
@@ -121,8 +126,15 @@ impl Cycle {
         }
     }
 
+    pub fn print(&self, parent_path: &str) {
+        let wd = Path::new(parent_path);
+        let metadata = fs::metadata(wd.join(self.get_folder_name())).unwrap();
+        let created_at: DateTime<Utc> = DateTime::from(metadata.created().unwrap());
+        println!("{} {:>2} courses {:<12}", self.get_folder_name(), self.get_courses().len(), created_at.format("%d/%m/%Y"));
+    }
+
     pub(crate) fn print_summary(&self) {
-        println!("Summary of cycle {}:", self.get_folder_name());
+        println!("Cycle {}:", self.get_folder_name());
         self.get_courses().iter().for_each(|course| {
             println!("  {}", course.get_name());
         });
