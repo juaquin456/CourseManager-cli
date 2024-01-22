@@ -14,7 +14,9 @@ pub struct Config {
 impl Config {
     pub fn init(path: Option<String>) -> Config {
         if let Some(p) = path {
-            return Config::new(&p);
+            let config = Config::new(fs::canonicalize(p).unwrap().to_str().unwrap());
+            config.write();
+            return config;
         }
 
         let config;
