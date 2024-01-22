@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use super::course::Course;
 use std::fs;
 use std::num::ParseIntError;
@@ -62,10 +63,6 @@ impl Cycle {
 
     /// Creates a folder for the cycle. The folder name is the concatenation of the age and the semester of the cycle.
     /// Check the `get_folder_name` method for more details.
-    ///
-    /// # Arguments
-    ///
-    /// * `parent_path` - The path of the parent folder
     pub(crate) fn create_folder(&self) {
         let create_dir_result = fs::create_dir(Path::new(&self.parent_path).join(self.get_folder_name()));
         if let Err(e) = create_dir_result {
@@ -101,10 +98,6 @@ impl Cycle {
 
 
     /// Loads all the courses from the folder path given
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - The path of the folder containing the courses
     pub(crate) fn load_courses(&mut self) {
         let courses_paths = fs::read_dir(Path::new(&self.parent_path).join(self.get_folder_name())).unwrap();
         for course_path in courses_paths {
@@ -117,10 +110,6 @@ impl Cycle {
     }
 
     /// Removes the folder of the cycle
-    ///
-    /// # Arguments
-    ///
-    /// * `parent_path` - The path of the parent folder
     pub fn remove_folder(&self) {
         let remove_dir_result =
             fs::remove_dir_all(Path::new(&self.parent_path).join(self.get_folder_name()));
@@ -129,18 +118,25 @@ impl Cycle {
         }
     }
 
-    pub fn print(&self) {
-        let wd = Path::new(&self.parent_path);
-        let metadata = fs::metadata(wd.join(self.get_folder_name())).unwrap();
-        let created_at: DateTime<Utc> = DateTime::from(metadata.created().unwrap());
-        println!("{} {:>2} courses {:<12}", self.get_folder_name(), self.get_courses().len(), created_at.format("%d/%m/%Y"));
-    }
-
     pub(crate) fn print_summary(&self) {
         println!("Cycle {}:", self.get_folder_name());
         self.get_courses().iter().for_each(|course| {
             println!("  {}", course.get_name());
         });
+    }
+}
+
+impl Display for Cycle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let wd = Path::new(&self.parent_path);
+        let metadata = fs::metadata(wd.join(self.get_folder_name())).unwrap();
+        let created_at: DateTime<Utc> = DateTime::from(metadata.created().unwrap());
+        write!(f,
+               "{} {:>2} courses {:<12}",
+               self.get_folder_name(),
+               self.get_courses().len(),
+               created_at.format("%d/%m/%Y")
+        )
     }
 }
 

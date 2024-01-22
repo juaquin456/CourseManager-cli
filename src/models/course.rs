@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::path::Path;
 use chrono::{DateTime, Utc};
 use super::resource;
@@ -13,10 +14,6 @@ pub struct Course {
 
 impl Course {
     /// Creates a folder for the course. This includes sub folders for projects, labs, notes and references
-    ///
-    /// # Arguments
-    ///
-    /// * `p0` - The path to the cycle folder
     pub(crate) fn create_folder(&self) {
         let course_path = Path::new(&self.parent_path).join(self.get_name());
         let course_dir_result = std::fs::create_dir(&course_path);
@@ -67,10 +64,6 @@ impl Course {
     }
 
     /// Removes the course folder
-    ///
-    /// # Arguments
-    ///
-    /// * `p0` - The path to the cycle folder
     pub fn remove_folder(&self) {
         let course_dir_result = std::fs::remove_dir_all(Path::new(&self.parent_path).join(self.get_name()));
         if let Err(e) = course_dir_result {
@@ -96,10 +89,6 @@ impl Course {
     }
 
     /// Loads the resources of the course. This includes projects, labs, notes and references
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - The path to the course folder
     pub(crate) fn load_resources(&mut self) {
         let paths = std::fs::read_dir(&self.parent_path).expect("Failed to read directory");
         paths.for_each(|path| {
@@ -162,24 +151,26 @@ impl Course {
         });
     }
 
-    pub fn print(&self) {
-        let cycle_path = Path::new(&self.parent_path);
-
-        let cycle_id = cycle_path.file_name().unwrap().to_str().unwrap();
-        let metadata = std::fs::metadata(cycle_path.join(self.get_name())).unwrap();
-        let created_at: DateTime<Utc> = DateTime::from(metadata.created().unwrap());
-        println!("{:10} {} {:<12}",
-                 self.get_name(),
-                 cycle_id,
-                 created_at.format("%d/%m/%Y")
-        );
-    }
-
     pub(crate) fn print_summary(&self) {
         println!("Summary of course {}:", self.get_name());
         println!("\tProjects\n\t\t{:?}", self.get_projects());
         println!("\tNotes\n\t\t{:?}", self.get_notes());
         println!("\tLabs\n\t\t{:?}", self.get_labs());
         println!("\tReferences\n\t\t{:?}", self.get_references());
+    }
+}
+
+impl Display for Course {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let cycle_path = Path::new(&self.parent_path);
+
+        let cycle_id = cycle_path.file_name().unwrap().to_str().unwrap();
+        let metadata = std::fs::metadata(cycle_path.join(self.get_name())).unwrap();
+        let created_at: DateTime<Utc> = DateTime::from(metadata.created().unwrap());
+
+        write!(f, "{:10} {} {:<12}",
+               self.get_name(),
+               cycle_id,
+               created_at.format("%d/%m/%Y"))
     }
 }

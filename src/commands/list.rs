@@ -9,7 +9,7 @@ pub fn list(entity: parser::Entities, config: &Config) {
                 .iter_mut()
                 .for_each(|cycle| {
                     cycle.load_courses();
-                    cycle.print();
+                    println!("{}", cycle);
                 });
         }
         parser::Entities::Courses => {
@@ -19,7 +19,7 @@ pub fn list(entity: parser::Entities, config: &Config) {
                 cycle
                     .get_courses()
                     .iter()
-                    .for_each(|course| course.print());
+                    .for_each(|course| println!("{}", course));
             });
         }
     }
