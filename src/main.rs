@@ -26,15 +26,16 @@ fn main() {
         }));
     }
 
+    let cli = parser::Cli::parse();
+
     let config = {
         if Config::exists() {
             Config::read(&Config::get_path())
         } else {
-            Config::init()
+            Config::init(cli.working_dir)
         }
     };
 
-    let cli = parser::Cli::parse();
 
     match cli.command {
         parser::Commands::List { entity } => {

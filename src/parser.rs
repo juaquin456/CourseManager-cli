@@ -5,6 +5,9 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
+
+    #[arg(short, long)]
+    pub working_dir: Option<String>,
 }
 
 #[derive(Args, Clone)]

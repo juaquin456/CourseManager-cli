@@ -12,7 +12,11 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn init() -> Config {
+    pub fn init(path: Option<String>) -> Config {
+        if let Some(p) = path {
+            return Config::new(&p);
+        }
+
         let config;
         println!("Creating config file...");
         loop {
