@@ -8,18 +8,18 @@ pub fn list(entity: parser::Entities, config: &Config) {
             cycles
                 .iter_mut()
                 .for_each(|cycle| {
-                    cycle.load_courses(config.get_working_dir());
-                    cycle.print(config.get_working_dir());
+                    cycle.load_courses();
+                    cycle.print();
                 });
         }
         parser::Entities::Courses => {
             let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
             cycles.iter_mut().for_each(|cycle| {
-                cycle.load_courses(config.get_working_dir());
+                cycle.load_courses();
                 cycle
                     .get_courses()
                     .iter()
-                    .for_each(|course| course.print(cycle.get_path(config.get_working_dir()).as_str()));
+                    .for_each(|course| course.print());
             });
         }
     }

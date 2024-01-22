@@ -4,6 +4,7 @@ use super::resource;
 
 pub struct Course {
     name: String,
+    parent_path: String,
     projects: Vec<resource::ResourceType>,
     labs: Vec<resource::ResourceType>,
     notes: Vec<resource::ResourceType>,
@@ -16,8 +17,8 @@ impl Course {
     /// # Arguments
     ///
     /// * `p0` - The path to the cycle folder
-    pub(crate) fn create_folder(&self, p0: &str) {
-        let course_path = Path::new(p0).join(self.get_name());
+    pub(crate) fn create_folder(&self) {
+        let course_path = Path::new(&self.parent_path).join(self.get_name());
         let course_dir_result = std::fs::create_dir(&course_path);
         if let Err(e) = course_dir_result {
             println!("Failed to create folder: {}", e)
@@ -41,18 +42,23 @@ impl Course {
 
 impl From<&str> for Course {
     fn from(path: &str) -> Course {
-        Course::new(Path::new(path).file_name().unwrap().to_str().unwrap())
+        let path = Path::new(path);
+        Course::new(
+            path.file_name().unwrap().to_str().unwrap(),
+            path.parent().unwrap().to_str().unwrap()
+        )
     }
 }
 
 impl Course {
-    pub fn new(name: &str) -> Course {
+    pub fn new(name: &str, parent_path: &str) -> Course {
         Course {
             name: String::from(name),
             projects: Vec::new(),
             labs: Vec::new(),
             notes: Vec::new(),
             references: Vec::new(),
+            parent_path: String::from(parent_path),
         }
     }
 
@@ -65,11 +71,15 @@ impl Course {
     /// # Arguments
     ///
     /// * `p0` - The path to the cycle folder
-    pub fn remove_folder(&self, p0: &str) {
-        let course_dir_result = std::fs::remove_dir_all(Path::new(p0).join(self.get_name()));
+    pub fn remove_folder(&self) {
+        let course_dir_result = std::fs::remove_dir_all(Path::new(&self.parent_path).join(self.get_name()));
         if let Err(e) = course_dir_result {
             println!("Failed to remove folder: {}", e)
         }
+    }
+
+    pub(crate) fn get_path(&self) -> String {
+        Path::new(&self.parent_path).join(self.get_name()).to_str().unwrap().to_string()
     }
 
     pub(crate) fn get_projects(&self) -> &Vec<resource::ResourceType> {
@@ -90,8 +100,8 @@ impl Course {
     /// # Arguments
     ///
     /// * `path` - The path to the course folder
-    pub(crate) fn load_resources(&mut self, path: &str) {
-        let paths = std::fs::read_dir(path).expect("Failed to read directory");
+    pub(crate) fn load_resources(&mut self) {
+        let paths = std::fs::read_dir(&self.parent_path).expect("Failed to read directory");
         paths.for_each(|path| {
             let path = path.unwrap().path();
             if !path.is_dir() { return; }
@@ -152,8 +162,8 @@ impl Course {
         });
     }
 
-    pub fn print(&self, parent_path: &str) {
-        let cycle_path = Path::new(parent_path);
+    pub fn print(&self) {
+        let cycle_path = Path::new(&self.parent_path);
 
         let cycle_id = cycle_path.file_name().unwrap().to_str().unwrap();
         let metadata = std::fs::metadata(cycle_path.join(self.get_name())).unwrap();

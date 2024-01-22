@@ -8,21 +8,24 @@ pub struct Cycle {
     age: u16,
     semester: u8,
     courses: Vec<Course>,
+    parent_path: String,
 }
 
 impl From<&str> for Cycle {
     fn from(folder_name: &str) -> Self {
-        let (age, semester) = Cycle::get_ids(folder_name).unwrap();
-        Cycle::new(age, semester)
+        let path = Path::new(folder_name);
+        let (age, semester) = Cycle::get_ids(path.file_name().unwrap().to_str().unwrap()).unwrap();
+        Cycle::new(age, semester, path.parent().unwrap().to_str().unwrap())
     }
 }
 
 impl Cycle {
-    pub fn new(age: u16, semester: u8) -> Cycle {
+    pub fn new(age: u16, semester: u8, parent_path: &str) -> Cycle {
         Cycle {
             age,
             semester,
             courses: Vec::new(),
+            parent_path: String::from(parent_path),
         }
     }
 
@@ -53,8 +56,8 @@ impl Cycle {
         Ok((age, semester))
     }
 
-    pub fn get_path(&self, parent_path: &str) -> String {
-        Path::new(parent_path).join(self.get_folder_name()).to_str().unwrap().to_string()
+    pub fn get_path(&self) -> String {
+        Path::new(&self.parent_path).join(self.get_folder_name()).to_str().unwrap().to_string()
     }
 
     /// Creates a folder for the cycle. The folder name is the concatenation of the age and the semester of the cycle.
@@ -63,8 +66,8 @@ impl Cycle {
     /// # Arguments
     ///
     /// * `parent_path` - The path of the parent folder
-    pub(crate) fn create_folder(&self, parent_path: &str) {
-        let create_dir_result = fs::create_dir(Path::new(parent_path).join(self.get_folder_name()));
+    pub(crate) fn create_folder(&self) {
+        let create_dir_result = fs::create_dir(Path::new(&self.parent_path).join(self.get_folder_name()));
         if let Err(e) = create_dir_result {
             println!("Failed to create folder: {}", e)
         }
@@ -90,7 +93,7 @@ impl Cycle {
                     Ok(_) => (),
                     Err(_) => continue,
                 }
-                cycles.push(Cycle::from(folder_name));
+                cycles.push(Cycle::from(path.to_str().unwrap()));
             }
         }
         cycles
@@ -102,8 +105,8 @@ impl Cycle {
     /// # Arguments
     ///
     /// * `path` - The path of the folder containing the courses
-    pub(crate) fn load_courses(&mut self, path: &str) {
-        let courses_paths = fs::read_dir(Path::new(path).join(self.get_folder_name())).unwrap();
+    pub(crate) fn load_courses(&mut self) {
+        let courses_paths = fs::read_dir(Path::new(&self.parent_path).join(self.get_folder_name())).unwrap();
         for course_path in courses_paths {
             let course_path = course_path.unwrap().path();
             if course_path.is_dir() {
@@ -118,16 +121,16 @@ impl Cycle {
     /// # Arguments
     ///
     /// * `parent_path` - The path of the parent folder
-    pub fn remove_folder(&self, parent_path: &str) {
+    pub fn remove_folder(&self) {
         let remove_dir_result =
-            fs::remove_dir_all(Path::new(parent_path).join(self.get_folder_name()));
+            fs::remove_dir_all(Path::new(&self.parent_path).join(self.get_folder_name()));
         if let Err(e) = remove_dir_result {
             println!("Failed to remove folder: {}", e)
         }
     }
 
-    pub fn print(&self, parent_path: &str) {
-        let wd = Path::new(parent_path);
+    pub fn print(&self) {
+        let wd = Path::new(&self.parent_path);
         let metadata = fs::metadata(wd.join(self.get_folder_name())).unwrap();
         let created_at: DateTime<Utc> = DateTime::from(metadata.created().unwrap());
         println!("{} {:>2} courses {:<12}", self.get_folder_name(), self.get_courses().len(), created_at.format("%d/%m/%Y"));
@@ -146,14 +149,14 @@ mod tests {
     use super::*;
     #[test]
     fn test_cycle() {
-        let cycle = Cycle::new(1, 2);
+        let cycle = Cycle::new(1, 2, "/tmp");
         assert_eq!(cycle.age, 1);
         assert_eq!(cycle.semester, 2);
     }
 
     #[test]
     fn test_get_folder_name() {
-        let cycle = Cycle::new(1, 2);
+        let cycle = Cycle::new(1, 2, "/tmp");
         assert_eq!(cycle.get_folder_name(), "1-2");
     }
 
@@ -166,8 +169,8 @@ mod tests {
 
     #[test]
     fn test_create_folder() {
-        let cycle = Cycle::new(1, 2);
-        cycle.create_folder("/tmp");
+        let cycle = Cycle::new(1, 2, "/tmp");
+        cycle.create_folder();
         assert!(Path::new("/tmp/1-2").exists());
         fs::remove_dir_all("/tmp/1-2").unwrap();
     }
@@ -176,8 +179,8 @@ mod tests {
     fn test_load_cycles() {
         fs::create_dir_all("/tmp/t1").unwrap();
 
-        let cycle = Cycle::new(1, 3);
-        cycle.create_folder("/tmp/t1");
+        let cycle = Cycle::new(1, 3, "/tmp/t1");
+        cycle.create_folder();
         let cycles = Cycle::load_cycles("/tmp/t1");
 
         assert!(Path::new("/tmp/t1/1-3").exists());
@@ -190,9 +193,9 @@ mod tests {
 
     #[test]
     fn test_remove_folder() {
-        let cycle = Cycle::new(1, 2);
-        cycle.create_folder("/tmp");
-        cycle.remove_folder("/tmp");
+        let cycle = Cycle::new(1, 2, "/tmp");
+        cycle.create_folder();
+        cycle.remove_folder();
         assert!(!Path::new("/tmp/1-2").exists());
     }
 }

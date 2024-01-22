@@ -5,7 +5,7 @@ use crate::utils::open_terminal;
 pub fn go(entity: parser::Entity, config: &Config) {
     match entity {
         parser::Entity::Cycle(cycle) => {
-            let cycle_target = models::cycle::Cycle::new(cycle.age, cycle.semester);
+            let cycle_target = models::cycle::Cycle::new(cycle.age, cycle.semester, config.get_working_dir());
             let cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
             let cycle = cycles
                 .iter()
@@ -29,8 +29,8 @@ pub fn go(entity: parser::Entity, config: &Config) {
                 .iter_mut()
                 .find(|cycle| cycle.get_folder_name() == course.cycle_id).expect("Cycle not found");
 
-            cycle.load_courses(config.get_working_dir());
-            let course_target = models::course::Course::new(&course.name);
+            cycle.load_courses();
+            let course_target = models::course::Course::new(&course.name, &cycle.get_path());
 
             let course_t = cycle
                 .get_courses()
@@ -40,19 +40,12 @@ pub fn go(entity: parser::Entity, config: &Config) {
             let path = {
                 if let Some(t) = course.resource {
                     format!(
-                        "{}/{}/{}/{:?}",
-                        config.get_working_dir(),
-                        cycle.get_folder_name(),
-                        course_t.get_name(),
+                        "{}/{:?}",
+                        course_t.get_path(),
                         t
                     )
                 } else {
-                    format!(
-                        "{}/{}/{}",
-                        config.get_working_dir(),
-                        cycle.get_folder_name(),
-                        course_t.get_name()
-                    )
+                    course_t.get_path()
                 }
             };
 
