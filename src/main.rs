@@ -18,7 +18,7 @@ fn main() {
                 Some(s) => *s,
                 None => match info.payload().downcast_ref::<String>() {
                     Some(s) => &s[..],
-                    None => "No message"
+                    None => "No message",
                 },
             };
 
@@ -36,30 +36,29 @@ fn main() {
         }
     };
 
-
     match cli.command {
         parser::Commands::List { entity } => {
             commands::list(entity, &config);
-        },
+        }
         parser::Commands::Create { entity } => {
             commands::create(entity, &config);
-        },
+        }
         parser::Commands::Remove { entity } => {
             commands::remove(entity, &config);
         }
         parser::Commands::Go { entity } => {
             commands::go(entity, &config);
-        },
+        }
         parser::Commands::Summary { entity } => {
             commands::summary(entity, &config);
-        },
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::parser::{Cli, Commands, Entities, Entity};
     use clap::Parser;
-    use crate::parser::{Cli, Commands, Entity, Entities};
 
     #[test]
     fn test_list_cycles() {

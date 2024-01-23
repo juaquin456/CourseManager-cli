@@ -1,9 +1,10 @@
-use std::fmt::Display;
 use super::course::Course;
+use crate::models::Crud;
+use chrono::{DateTime, Utc};
+use std::fmt::Display;
 use std::fs;
 use std::num::ParseIntError;
 use std::path::Path;
-use chrono::{DateTime, Utc};
 
 pub struct Cycle {
     age: u16,
@@ -58,16 +59,11 @@ impl Cycle {
     }
 
     pub fn get_path(&self) -> String {
-        Path::new(&self.parent_path).join(self.get_folder_name()).to_str().unwrap().to_string()
-    }
-
-    /// Creates a folder for the cycle. The folder name is the concatenation of the age and the semester of the cycle.
-    /// Check the `get_folder_name` method for more details.
-    pub(crate) fn create_folder(&self) {
-        let create_dir_result = fs::create_dir(Path::new(&self.parent_path).join(self.get_folder_name()));
-        if let Err(e) = create_dir_result {
-            println!("Failed to create folder: {}", e)
-        }
+        Path::new(&self.parent_path)
+            .join(self.get_folder_name())
+            .to_str()
+            .unwrap()
+            .to_string()
     }
 
     /// Loads all the cycles from the folder path given
@@ -96,25 +92,16 @@ impl Cycle {
         cycles
     }
 
-
     /// Loads all the courses from the folder path given
     pub(crate) fn load_courses(&mut self) {
-        let courses_paths = fs::read_dir(Path::new(&self.parent_path).join(self.get_folder_name())).unwrap();
+        let courses_paths =
+            fs::read_dir(Path::new(&self.parent_path).join(self.get_folder_name())).unwrap();
         for course_path in courses_paths {
             let course_path = course_path.unwrap().path();
             if course_path.is_dir() {
                 let course = Course::from(course_path.to_str().unwrap());
                 self.add_course(course);
             }
-        }
-    }
-
-    /// Removes the folder of the cycle
-    pub fn remove_folder(&self) {
-        let remove_dir_result =
-            fs::remove_dir_all(Path::new(&self.parent_path).join(self.get_folder_name()));
-        if let Err(e) = remove_dir_result {
-            println!("Failed to remove folder: {}", e)
         }
     }
 
@@ -131,12 +118,34 @@ impl Display for Cycle {
         let wd = Path::new(&self.parent_path);
         let metadata = fs::metadata(wd.join(self.get_folder_name())).unwrap();
         let created_at: DateTime<Utc> = DateTime::from(metadata.created().unwrap());
-        write!(f,
-               "{} {:>2} courses {:<12}",
-               self.get_folder_name(),
-               self.get_courses().len(),
-               created_at.format("%d/%m/%Y")
+        write!(
+            f,
+            "{} {:>2} courses {:<12}",
+            self.get_folder_name(),
+            self.get_courses().len(),
+            created_at.format("%d/%m/%Y")
         )
+    }
+}
+
+impl Crud for Cycle {
+    /// Creates a folder for the cycle. The folder name is the concatenation of the age and the semester of the cycle.
+    /// Check the `get_folder_name` method for more details.
+    fn create(&self) {
+        let create_dir_result =
+            fs::create_dir(Path::new(&self.parent_path).join(self.get_folder_name()));
+        if let Err(e) = create_dir_result {
+            println!("Failed to create folder: {}", e)
+        }
+    }
+
+    /// Removes the folder of the cycle
+    fn remove(&self) {
+        let remove_dir_result =
+            fs::remove_dir_all(Path::new(&self.parent_path).join(self.get_folder_name()));
+        if let Err(e) = remove_dir_result {
+            println!("Failed to remove folder: {}", e)
+        }
     }
 }
 
@@ -166,7 +175,7 @@ mod tests {
     #[test]
     fn test_create_folder() {
         let cycle = Cycle::new(1, 2, "/tmp");
-        cycle.create_folder();
+        cycle.create();
         assert!(Path::new("/tmp/1-2").exists());
         fs::remove_dir_all("/tmp/1-2").unwrap();
     }
@@ -176,7 +185,7 @@ mod tests {
         fs::create_dir_all("/tmp/t1").unwrap();
 
         let cycle = Cycle::new(1, 3, "/tmp/t1");
-        cycle.create_folder();
+        cycle.create();
         let cycles = Cycle::load_cycles("/tmp/t1");
 
         assert!(Path::new("/tmp/t1/1-3").exists());
@@ -190,8 +199,8 @@ mod tests {
     #[test]
     fn test_remove_folder() {
         let cycle = Cycle::new(1, 2, "/tmp");
-        cycle.create_folder();
-        cycle.remove_folder();
+        cycle.create();
+        cycle.remove();
         assert!(!Path::new("/tmp/1-2").exists());
     }
 }

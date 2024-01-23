@@ -4,7 +4,8 @@ use crate::{models, parser};
 pub fn summary(entity: parser::Entity, config: &Config) {
     match entity {
         parser::Entity::Cycle(cycle) => {
-            let cycle_target = models::cycle::Cycle::new(cycle.age, cycle.semester, config.get_working_dir());
+            let cycle_target =
+                models::cycle::Cycle::new(cycle.age, cycle.semester, config.get_working_dir());
             let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
             let cycle = cycles
                 .iter_mut()
@@ -18,7 +19,8 @@ pub fn summary(entity: parser::Entity, config: &Config) {
             let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
             let cycle = cycles
                 .iter_mut()
-                .find(|cycle| cycle.get_folder_name() == course.cycle_id).expect("Cycle not found");
+                .find(|cycle| cycle.get_folder_name() == course.cycle_id)
+                .expect("Cycle not found");
 
             cycle.load_courses();
             let course_target = models::course::Course::new(&course.name, &cycle.get_path());
@@ -26,7 +28,8 @@ pub fn summary(entity: parser::Entity, config: &Config) {
             let course = cycle
                 .get_courses_mut()
                 .iter_mut()
-                .find(|c| c.get_name() == course_target.get_name()).expect("Course not found");
+                .find(|c| c.get_name() == course_target.get_name())
+                .expect("Course not found");
 
             course.load_resources();
 
