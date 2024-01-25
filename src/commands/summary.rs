@@ -1,12 +1,13 @@
 use crate::config::Config;
 use crate::{models, parser};
+use crate::models::Crud;
 
 pub fn summary(entity: parser::Entity, config: &Config) {
     match entity {
         parser::Entity::Cycle(cycle) => {
             let cycle_target =
                 models::cycle::Cycle::new(cycle.age, cycle.semester, config.get_working_dir());
-            let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+            let mut cycles = models::cycle::Cycle::list(config.get_working_dir());
             let cycle = cycles
                 .iter_mut()
                 .find(|c| c.get_folder_name() == cycle_target.get_folder_name())
@@ -16,7 +17,7 @@ pub fn summary(entity: parser::Entity, config: &Config) {
             cycle.print_summary();
         }
         parser::Entity::Course(course) => {
-            let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+            let mut cycles = models::cycle::Cycle::list(config.get_working_dir());
             let cycle = cycles
                 .iter_mut()
                 .find(|cycle| cycle.get_folder_name() == course.cycle_id)

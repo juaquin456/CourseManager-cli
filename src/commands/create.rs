@@ -10,7 +10,7 @@ pub fn create(entity: parser::Entity, config: &Config) {
             new_cycle.create();
         }
         parser::Entity::Course(course) => {
-            let mut cycles = models::cycle::Cycle::load_cycles(config.get_working_dir());
+            let mut cycles = models::cycle::Cycle::list(config.get_working_dir());
             let cycle = cycles
                 .iter_mut()
                 .find(|cycle| cycle.get_folder_name() == course.cycle_id)

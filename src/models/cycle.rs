@@ -66,32 +66,6 @@ impl Cycle {
             .to_string()
     }
 
-    /// Loads all the cycles from the folder path given
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - The path of the folder containing the cycles
-    ///
-    /// # Returns
-    ///
-    /// A vector containing all the cycles
-    pub fn load_cycles(path: &str) -> Vec<Cycle> {
-        let mut cycles = Vec::new();
-        let paths = fs::read_dir(path).unwrap();
-        for path in paths {
-            let path = path.unwrap().path();
-            if path.is_dir() {
-                let folder_name = path.file_name().unwrap().to_str().unwrap();
-                match Cycle::get_ids(folder_name) {
-                    Ok(_) => (),
-                    Err(_) => continue,
-                }
-                cycles.push(Cycle::from(path.to_str().unwrap()));
-            }
-        }
-        cycles
-    }
-
     /// Loads all the courses from the folder path given
     pub(crate) fn load_courses(&mut self) {
         let courses_paths =
@@ -129,6 +103,32 @@ impl Display for Cycle {
 }
 
 impl Crud for Cycle {
+    /// Loads all the cycles from the folder path given
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - The path of the folder containing the cycles
+    ///
+    /// # Returns
+    ///
+    /// A vector containing all the cycles
+    fn list(path: &str) -> Vec<Self> {
+        let mut cycles = Vec::new();
+        let paths = fs::read_dir(path).unwrap();
+        for path in paths {
+            let path = path.unwrap().path();
+            if path.is_dir() {
+                let folder_name = path.file_name().unwrap().to_str().unwrap();
+                match Cycle::get_ids(folder_name) {
+                    Ok(_) => (),
+                    Err(_) => continue,
+                }
+                cycles.push(Cycle::from(path.to_str().unwrap()));
+            }
+        }
+        cycles
+    }
+
     /// Creates a folder for the cycle. The folder name is the concatenation of the age and the semester of the cycle.
     /// Check the `get_folder_name` method for more details.
     fn create(&self) {
@@ -186,7 +186,7 @@ mod tests {
 
         let cycle = Cycle::new(1, 3, "/tmp/t1");
         cycle.create();
-        let cycles = Cycle::load_cycles("/tmp/t1");
+        let cycles = Cycle::list("/tmp/t1");
 
         assert!(Path::new("/tmp/t1/1-3").exists());
         assert_eq!(cycles.len(), 1);

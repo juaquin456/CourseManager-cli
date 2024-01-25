@@ -1,6 +1,7 @@
 use super::{resource, Crud};
 use chrono::{DateTime, Utc};
 use std::fmt::Display;
+use std::fs;
 use std::path::Path;
 
 pub struct Course {
@@ -61,7 +62,7 @@ impl Course {
 
     /// Loads the resources of the course. This includes projects, labs, notes and references
     pub(crate) fn load_resources(&mut self) {
-        let paths = std::fs::read_dir(&self.parent_path).expect("Failed to read directory");
+        let paths = fs::read_dir(&self.parent_path).expect("Failed to read directory");
         paths.for_each(|path| {
             let path = path.unwrap().path();
             if !path.is_dir() {
@@ -71,7 +72,7 @@ impl Course {
             let folder_name = path.file_name().unwrap().to_str().unwrap();
             match folder_name {
                 "Projects" => {
-                    let projects = std::fs::read_dir(path).unwrap();
+                    let projects = fs::read_dir(path).unwrap();
                     for project in projects {
                         let project = project.unwrap().path();
                         if project.is_dir() {
@@ -83,7 +84,7 @@ impl Course {
                     }
                 }
                 "Labs" => {
-                    let labs = std::fs::read_dir(path).unwrap();
+                    let labs = fs::read_dir(path).unwrap();
                     for lab in labs {
                         let lab = lab.unwrap().path();
                         if lab.is_dir() {
@@ -95,7 +96,7 @@ impl Course {
                     }
                 }
                 "Notes" => {
-                    let notes = std::fs::read_dir(path).unwrap();
+                    let notes = fs::read_dir(path).unwrap();
                     for note in notes {
                         let note = note.unwrap().path();
                         if note.is_dir() {
@@ -107,7 +108,7 @@ impl Course {
                     }
                 }
                 "References" => {
-                    let references = std::fs::read_dir(path).unwrap();
+                    let references = fs::read_dir(path).unwrap();
                     for reference in references {
                         let reference = reference.unwrap().path();
                         if reference.is_dir() {
@@ -137,7 +138,7 @@ impl Display for Course {
         let cycle_path = Path::new(&self.parent_path);
 
         let cycle_id = cycle_path.file_name().unwrap().to_str().unwrap();
-        let metadata = std::fs::metadata(cycle_path.join(self.get_name())).unwrap();
+        let metadata = fs::metadata(cycle_path.join(self.get_name())).unwrap();
         let created_at: DateTime<Utc> = DateTime::from(metadata.created().unwrap());
 
         write!(
@@ -151,24 +152,39 @@ impl Display for Course {
 }
 
 impl Crud for Course {
+    /// Loads all the courses from the folder path given
+    fn list(path: &str) -> Vec<Self> {
+        let courses_paths = fs::read_dir(path).unwrap();
+        let mut res = Vec::new();
+
+        for course_path in courses_paths {
+            let course_path = course_path.unwrap().path();
+            if course_path.is_dir() {
+                let course = Course::from(course_path.to_str().unwrap());
+                res.push(course);
+            }
+        }
+        res
+    }
+
     /// Creates a folder for the course. This includes sub folders for projects, labs, notes and references
     fn create(&self) {
         let course_path = Path::new(&self.parent_path).join(self.get_name());
-        let course_dir_result = std::fs::create_dir(&course_path);
+        let course_dir_result = fs::create_dir(&course_path);
         if let Err(e) = course_dir_result {
             println!("Failed to create folder: {}", e)
         }
 
-        if let Err(e) = std::fs::create_dir(course_path.join("Projects")) {
+        if let Err(e) = fs::create_dir(course_path.join("Projects")) {
             println!("Failed to create folder: {}", e)
         }
-        if let Err(e) = std::fs::create_dir(course_path.join("Notes")) {
+        if let Err(e) = fs::create_dir(course_path.join("Notes")) {
             println!("Failed to create folder: {}", e)
         }
-        if let Err(e) = std::fs::create_dir(course_path.join("Labs")) {
+        if let Err(e) = fs::create_dir(course_path.join("Labs")) {
             println!("Failed to create folder: {}", e)
         }
-        if let Err(e) = std::fs::create_dir(course_path.join("References")) {
+        if let Err(e) = fs::create_dir(course_path.join("References")) {
             println!("Failed to create folder: {}", e)
         }
     }
@@ -176,7 +192,7 @@ impl Crud for Course {
     /// Removes the folder of the course
     fn remove(&self) {
         let course_dir_result =
-            std::fs::remove_dir_all(Path::new(&self.parent_path).join(self.get_name()));
+            fs::remove_dir_all(Path::new(&self.parent_path).join(self.get_name()));
         if let Err(e) = course_dir_result {
             println!("Failed to remove folder: {}", e)
         }
