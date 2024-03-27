@@ -1,7 +1,7 @@
 use crate::config::Config;
+use crate::models::Crud;
 use crate::utils::open_terminal;
 use crate::{models, parser};
-use crate::models::Crud;
 
 pub fn go(entity: parser::Entity, config: &Config) {
     match entity {

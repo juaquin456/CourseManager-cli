@@ -1,6 +1,6 @@
 use crate::config::Config;
-use crate::{models, parser};
 use crate::models::Crud;
+use crate::{models, parser};
 
 pub fn summary(entity: parser::Entity, config: &Config) {
     match entity {

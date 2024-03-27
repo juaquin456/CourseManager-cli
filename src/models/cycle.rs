@@ -1,16 +1,44 @@
-use super::course::Course;
-use crate::models::Crud;
-use chrono::{DateTime, Utc};
+use std::cmp::Ordering;
 use std::fmt::Display;
 use std::fs;
 use std::num::ParseIntError;
 use std::path::Path;
+
+use chrono::{DateTime, Utc};
+
+use crate::models::Crud;
+
+use super::course::Course;
 
 pub struct Cycle {
     age: u16,
     semester: u8,
     courses: Vec<Course>,
     parent_path: String,
+}
+
+impl Eq for Cycle {}
+
+impl PartialEq<Self> for Cycle {
+    fn eq(&self, other: &Self) -> bool {
+        self.age == other.age && self.semester == other.semester
+    }
+}
+
+impl PartialOrd<Self> for Cycle {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Cycle {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.age.cmp(&other.age) {
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Less => Ordering::Less,
+            Ordering::Equal => self.semester.cmp(&other.semester),
+        }
+    }
 }
 
 impl From<&str> for Cycle {
@@ -20,6 +48,7 @@ impl From<&str> for Cycle {
         Cycle::new(age, semester, path.parent().unwrap().to_str().unwrap())
     }
 }
+
 
 impl Cycle {
     pub fn new(age: u16, semester: u8, parent_path: &str) -> Cycle {
@@ -126,6 +155,7 @@ impl Crud for Cycle {
                 cycles.push(Cycle::from(path.to_str().unwrap()));
             }
         }
+        cycles.sort();
         cycles
     }
 
@@ -152,6 +182,7 @@ impl Crud for Cycle {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_cycle() {
         let cycle = Cycle::new(1, 2, "/tmp");
