@@ -38,6 +38,7 @@ pub enum Commands {
     List {
         #[arg(value_enum)]
         entity: Entities,
+        filter: Option<String> // only used for `list courses` command
     },
     #[command(about = "Open the resource folder in a new terminal window")]
     Go {
@@ -140,7 +141,7 @@ mod tests {
     fn test_list_cycles() {
         let cli = Cli::parse_from(["author", "list", "cycles"]);
         match cli.command {
-            Commands::List { entity } => match entity {
+            Commands::List { entity, filter: _ } => match entity {
                 Entities::Cycles => {}
                 _ => panic!("Wrong entity"),
             },
@@ -167,7 +168,7 @@ mod tests {
     fn test_list_courses() {
         let cli = Cli::parse_from(["author", "list", "courses"]);
         match cli.command {
-            Commands::List { entity } => match entity {
+            Commands::List { entity, filter: _ } => match entity {
                 Entities::Courses => {}
                 _ => panic!("Wrong entity"),
             },

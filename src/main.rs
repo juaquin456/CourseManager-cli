@@ -37,8 +37,8 @@ fn main() {
     };
 
     match cli.command {
-        parser::Commands::List { entity } => {
-            commands::list(entity, &config);
+        parser::Commands::List { entity , filter} => {
+            commands::list(entity, &config, filter);
         }
         parser::Commands::Create { entity } => {
             commands::create(entity, &config);
@@ -64,7 +64,7 @@ mod tests {
     fn test_list_cycles() {
         let cli = Cli::parse_from(["author", "list", "cycles"]);
         match cli.command {
-            Commands::List { entity } => match entity {
+            Commands::List { entity, filter: _ } => match entity {
                 Entities::Cycles => {}
                 _ => panic!("Wrong entity"),
             },
@@ -76,7 +76,7 @@ mod tests {
     fn test_list_courses() {
         let cli = Cli::parse_from(["author", "list", "courses"]);
         match cli.command {
-            Commands::List { entity } => match entity {
+            Commands::List { entity , filter: _} => match entity {
                 Entities::Courses => {}
                 _ => panic!("Wrong entity"),
             },
